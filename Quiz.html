@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeu de Quiz</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, violet, skyblue);
+  color: #fff;
+  text-align: center;
+}
+
+.container {
+  margin-top: 100px;
+}
+
+.choices-container {
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bienvenue au Quiz</h1>
+    <button class="start-btn" data-difficulty="Facile">Facile</button>
+    <button class="start-btn" data-difficulty="Moyen">Moyen</button>
+    <button class="start-btn" data-difficulty="Difficile">Difficile</button> <br> <br>
+    <button class="start-btn" data-difficulty="Impossible">Impossible</button>
+  </div>
+  <div class="quiz-container hidden">
+    <div id="question"></div>
+    <div id="choices" class="choices-container"></div>
+  </div>
+  <div id="result" class="result-container hidden">
+    <h2>Résultats</h2>
+    <p id="score"></p>
+  </div>
+  <script>
+    const startButtons = document.querySelectorAll('.start-btn');
+const quizContainer = document.querySelector('.quiz-container');
+const resultContainer = document.getElementById('result');
+const questionElement = document.getElementById('question');
+const choicesElement = document.getElementById('choices');
+const scoreElement = document.getElementById('score');
+
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let userAnswers = [];
+
+const questions = {
+  Facile: [
+    {
+      question: "Quel est le capitale de la France ?",
+      choices: ["Paris", "Londres", "Berlin"],
+      correctAnswer: "Paris"
+    },
+    {
+      question: "Quel est le symbole chimique de l'eau ?",
+      choices: ["H2O", "CO2", "NaCl"],
+      correctAnswer: "H2O"
+    },
+    {
+      question: "Combien de continents y a-t-il sur Terre ?",
+      choices: ["4", "6", "7"],
+      correctAnswer: "7"
+    },
+    {
+      question: "Quelle est la couleur du ciel par temps clair ?",
+      choices: ["Bleu", "Vert", "Rouge"],
+      correctAnswer: "Bleu"
+    },
+    {
+      question: "Quel est le plus grand océan du monde ?",
+      choices: ["Pacifique", "Atlantique", "Indien"],
+      correctAnswer: "Pacifique"
+    },
+    {
+      question: "Quel est le résultat de 2 + 2 ?",
+      choices: ["3", "4", "5"],
+      correctAnswer: "4"
+    },
+    {
+      question: "Qui a peint la Joconde ?",
+      choices: ["Léonard de Vinci", "Picasso", "Van Gogh"],
+      correctAnswer: "Léonard de Vinci"
+    },
+    {
+      question: "Quelle est la capitale de l'Espagne ?",
+      choices: ["Madrid", "Barcelone", "Rome"],
+      correctAnswer: "Madrid"
+    },
+    {
+      question: "Quel est le plus grand mammifère terrestre ?",
+      choices: ["Éléphant", "Girafe", "Lion"],
+      correctAnswer: "Éléphant"
+    },
+    {
+      question: "Quelle est la planète la plus proche du Soleil ?",
+      choices: ["Vénus", "Mercure", "Mars"],
+      correctAnswer: "Mercure"
+    }    
+  ],
+  Moyen: [
+    {
+      question: "Qui est l'auteur de la pièce de théâtre 'Hamlet' ?",
+      choices: ["William Shakespeare", "George Bernard Shaw", "Anton Tchekhov"],
+      correctAnswer: "William Shakespeare"
+    },
+    {
+      question: "Quel est le plus long fleuve du monde ?",
+      choices: ["Nil", "Amazone", "Yangzi Jiang"],
+      correctAnswer: "Amazone"
+    },
+    {
+      question: "Quel est l'inventeur du téléphone ?",
+      choices: ["Alexander Graham Bell", "Thomas Edison", "Nikola Tesla"],
+      correctAnswer: "Alexander Graham Bell"
+    },
+    {
+      question: "Quel pays a remporté la Coupe du Monde de football en 2018 ?",
+      choices: ["France", "Brésil", "Allemagne"],
+      correctAnswer: "France"
+    },
+    {
+      question: "Qui a écrit 'Les Misérables' ?",
+      choices: ["Victor Hugo", "Gustave Flaubert", "Émile Zola"],
+      correctAnswer: "Victor Hugo"
+    },
+    {
+      question: "Quelle est la plus haute montagne du monde ?",
+      choices: ["Mont Everest", "K2", "Mont Kilimandjaro"],
+      correctAnswer: "Mont Everest"
+    },
+    {
+      question: "Quelle est la date de la Fête nationale des États-Unis ?",
+      choices: ["4 juillet", "14 juillet", "1er mai"],
+      correctAnswer: "4 juillet"
+    },
+    {
+      question: "Quel est le plus grand désert du monde ?",
+      choices: ["Désert du Sahara", "Désert de Gobi", "Désert d'Atacama"],
+      correctAnswer: "Désert du Sahara"
+    },
+    {
+      question: "Quel est le nom de l'océan situé entre l'Afrique et l'Asie ?",
+      choices: ["Océan Atlantique", "Océan Indien", "Océan Pacifique"],
+      correctAnswer: "Océan Indien"
+    },
+    {
+      question: "Qui a écrit 'Le Petit Prince' ?",
+      choices: ["Antoine de Saint-Exupéry", "Jules Verne", "Marcel Proust"],
+      correctAnswer: "Antoine de Saint-Exupéry"
+    }    
+  ],
+  Difficile: [
+    {
+      question: "Quelle est la distance moyenne entre la Terre et le Soleil en kilomètres ?",
+      choices: ["149,6 millions de km", "100 millions de km", "200 millions de km"],
+      correctAnswer: "149,6 millions de km"
+    },
+    {
+      question: "Quelle est la plus grande ville du monde en superficie ?",
+      choices: ["Tokyo", "New York", "Moscou"],
+      correctAnswer: "Tokyo"
+    },
+    {
+      question: "Qui a inventé le premier ordinateur programmable ?",
+      choices: ["Charles Babbage", "Alan Turing", "Ada Lovelace"],
+      correctAnswer: "Charles Babbage"
+    },
+    {
+      question: "Quelle est la vitesse de la lumière en mètres par seconde ?",
+      choices: ["299 792 458 m/s", "300 000 000 m/s", "200 000 000 m/s"],
+      correctAnswer: "299 792 458 m/s"
+    },
+    {
+      question: "Quelle est la température la plus basse jamais enregistrée sur Terre ?",
+      choices: ["-89,2 °C", "-100 °C", "-50 °C"],
+      correctAnswer: "-89,2 °C"
+    },
+    {
+      question: "Qui a découvert la structure en double hélice de l'ADN ?",
+      choices: ["Francis Crick et James Watson", "Gregor Mendel", "Rosalind Franklin"],
+      correctAnswer: "Francis Crick et James Watson"
+    },
+    {
+      question: "Quelle est la population mondiale estimée en 2021 ?",
+      choices: ["Environ 7,9 milliards", "Environ 6,4 milliards", "Environ 9,2 milliards"],
+      correctAnswer: "Environ 7,9 milliards"
+    },
+    {
+      question: "Quel est le diamètre approximatif de la Terre en kilomètres ?",
+      choices: ["Environ 12 742 km", "Environ 15 000 km", "Environ 10 000 km"],
+      correctAnswer: "Environ 12 742 km"
+    },
+    {
+      question: "Quel est le plus grand lac du monde en superficie ?",
+      choices: ["Mer Caspienne", "lac Supérieur", "lac Baïkal"],
+      correctAnswer: "Mer Caspienne"
+    },
+    {
+      question: "Quelle est la durée de vie moyenne d'un spermatozoïde humain en jours ?",
+      choices: ["Environ 5 jours", "Environ 30 jours", "Environ 90 jours"],
+      correctAnswer: "Environ 5 jours"
+    }    
+  ],
+  Impossible: [
+    {
+      question: "Quelle est la masse totale de tous les nuages de la Terre en kilogrammes ?",
+      choices: ["2,8 milliards de kg", "5,6 milliards de kg", "10,2 milliards de kg"],
+      correctAnswer: "10,2 milliards de kg"
+    },
+    {
+      question: "Combien de grains de sable se trouvent sur toutes les plages du monde ?",
+      choices: ["Environ 7,5 x 10^18 grains", "Environ 2 x 10^20 grains", "Environ 5 x 10^17 grains"],
+      correctAnswer: "Environ 7,5 x 10^18 grains"
+    },
+    {
+      question: "Quelle est la température exacte au centre du Soleil en degrés Celsius ?",
+      choices: ["Environ 15 millions °C", "Environ 27 millions °C", "Environ 5 millions °C"],
+      correctAnswer: "Environ 15 millions °C"
+    },
+    {
+      question: "Quel est le nombre exact de bactéries présentes dans l'intestin humain en moyenne ?",
+      choices: ["Environ 100 billions", "Environ 10 millions", "Environ 1 trillion"],
+      correctAnswer: "Environ 100 billions"
+    },
+    {
+      question: "Quelle est la valeur de pi à la millième décimale après la virgule ?",
+      choices: ["3,1415926535", "3,1415926536", "3,1415926537"],
+      correctAnswer: "3,1415926535"
+    },
+    {
+      question: "Quelle est la distance moyenne entre deux molécules d'air dans l'atmosphère terrestre en mètres ?",
+      choices: ["Environ 10^-10 m", "Environ 10^-9 m", "Environ 10^-8 m"],
+      correctAnswer: "Environ 10^-10 m"
+    },
+    {
+      question: "Quelle est la somme de tous les angles internes d'un polygone avec 100 côtés ?",
+      choices: ["17 640 degrés", "18 000 degrés", "19 440 degrés"],
+      correctAnswer: "17 640 degrés"
+    },
+    {
+      question: "Combien de neurones se trouvent dans le cerveau humain en moyenne ?",
+      choices: ["Environ 86 milliards", "Environ 100 milliards", "Environ 120 milliards"],
+      correctAnswer: "Environ 86 milliards"
+    },
+    {
+      question: "Quelle est la masse de l'Univers observable en kilogrammes ?",
+      choices: ["Environ 10^53 kg", "Environ 10^55 kg", "Environ 10^57 kg"],
+      correctAnswer: "Environ 10^53 kg"
+    },
+    {
+      question: "Quelle est la quantité totale d'information stockée sur Internet en octets ?",
+      choices: ["Environ 10^24 octets", "Environ 10^27 octets", "Environ 10^30 octets"],
+      correctAnswer: "Environ 10^27 octets"
+    }      
+  ]
+};
+
+function startQuiz(difficulty) {
+  startButtons.forEach(button => {
+    button.classList.add('hidden');
+  });
+
+  quizContainer.classList.remove('hidden');
+  resultContainer.classList.add('hidden');
+  currentQuestions = questions[difficulty];
+  currentQuestionIndex = 0;
+  score = 0;
+  userAnswers = [];
+  showQuestion();
+}
+
+function showQuestion() {
+  const currentQuestion = currentQuestions[currentQuestionIndex];
+  questionElement.textContent = currentQuestion.question;
+  choicesElement.innerHTML = '';
+
+  currentQuestion.choices.forEach((choice, index) => {
+    const button = document.createElement('button');
+    button.textContent = choice;
+    button.classList.add('choice');
+    button.dataset.index = index;
+    button.addEventListener('click', handleChoice);
+    choicesElement.appendChild(button);
+  });
+}
+
+function handleChoice(e) {
+  const selectedChoice = e.target;
+  const userAnswer = selectedChoice.textContent;
+  const correctAnswer = currentQuestions[currentQuestionIndex].correctAnswer;
+  userAnswers.push({ question: currentQuestions[currentQuestionIndex].question, userAnswer, correctAnswer });
+
+  if (userAnswer === correctAnswer) {
+    selectedChoice.classList.add('correct');
+    score++;
+  } else {
+    const correctButton = choicesElement.querySelector(`button[data-index="${currentQuestions[currentQuestionIndex].choices.indexOf(correctAnswer)}"]`);
+    correctButton.classList.add('correct');
+    selectedChoice.classList.add('incorrect');
+  }
+
+  setTimeout(showNextQuestion, 1000);
+}
+
+function showNextQuestion() {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < currentQuestions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  quizContainer.classList.add('hidden');
+  resultContainer.classList.remove('hidden');
+  scoreElement.textContent = `Votre score est de ${score}/${currentQuestions.length}`;
+
+  const answersList = document.createElement('ol');
+  userAnswers.forEach(answer => {
+    const item = document.createElement('li');
+    const isCorrect = answer.userAnswer === answer.correctAnswer;
+    item.textContent = `${answer.question} - Votre réponse : ${answer.userAnswer}`;
+    item.style.color = isCorrect ? 'green' : 'red';
+    if (isCorrect) {
+      item.textContent += ` - Bravo, vous avez trouvé la bonne réponse qui était : ${answer.correctAnswer}`;
+    } else {
+      item.textContent += ` - Faux, la bonne réponse était : ${answer.correctAnswer}`;
+    }
+    answersList.appendChild(item);
+  });
+
+  resultContainer.appendChild(answersList);
+}
+
+startButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const difficulty = button.dataset.difficulty;
+    startQuiz(difficulty);
+  });
+});
+  </script>
+</body>
+</html>
